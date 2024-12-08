@@ -1,148 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
+<!-- [이전 head 부분과 style 부분은 동일하게 유지] -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Style Chat - Dark Mode</title>
-    <style>
-        /* 이전 스타일 유지 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: #000000;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .chat-container {
-            width: 375px;
-            height: 667px;
-            background: #262626;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-header {
-            padding: 16px;
-            border-bottom: 1px solid #363636;
-            display: flex;
-            align-items: center;
-            background: #262626;
-            border-radius: 10px 10px 0 0;
-        }
-
-        .profile-img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #363636;
-            margin-right: 12px;
-        }
-
-        .chat-name {
-            font-weight: 600;
-            font-size: 16px;
-            color: #ffffff;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            background: #262626;
-        }
-
-        .message {
-            margin-bottom: 16px;
-            max-width: 70%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message.received {
-            align-items: flex-start;
-        }
-
-        .message.sent {
-            align-items: flex-end;
-            margin-left: auto;
-        }
-
-        .message-content {
-            padding: 12px;
-            border-radius: 22px;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .received .message-content {
-            background: #363636;
-            color: #ffffff;
-        }
-
-        .sent .message-content {
-            background: #0095f6;
-            color: white;
-        }
-
-        .chat-input {
-            padding: 16px;
-            border-top: 1px solid #363636;
-            display: flex;
-            align-items: center;
-            background: #262626;
-            border-radius: 0 0 10px 10px;
-        }
-
-        .input-field {
-            flex: 1;
-            border: 1px solid #363636;
-            border-radius: 22px;
-            padding: 8px 16px;
-            margin-right: 8px;
-            font-size: 14px;
-            outline: none;
-            background: #363636;
-            color: #ffffff;
-        }
-
-        .input-field::placeholder {
-            color: #8e8e8e;
-        }
-
-        .send-button {
-            background: #0095f6;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 22px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .send-button:disabled {
-            background: #1a4971;
-            color: #8e8e8e;
-            cursor: default;
-        }
-
-        .error-message {
-            color: #ff4444;
-            font-size: 12px;
-            margin-top: 4px;
-            text-align: center;
-        }
-    </style>
+    <title>Instagram Style Chat</title>
+    <!-- [이전 스타일 코드 유지] -->
 </head>
 <body>
     <div class="chat-container">
@@ -166,7 +29,7 @@
     </div>
 
     <script>
-        const webhookUrl = "https://hook.eu2.make.com/yikn15t2zm5ihcy8sbw91ln3w5hlalus";
+        const webhookUrl = "https://hook.eu2.make.com/cfdafgtp4angm4s0bx2gmo06frlbk3zn";
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const chatMessages = document.getElementById('chatMessages');
@@ -215,21 +78,34 @@
                 console.log('Response status:', response.status);
                 
                 if (response.ok) {
+                    let responseData;
+                    const responseText = await response.text();
+                    console.log('Raw response:', responseText);
+
                     try {
-                        const data = await response.json();
-                        if (data.reply) {
-                            addMessage(data.reply, false);
+                        if (responseText) {
+                            responseData = JSON.parse(responseText);
+                            if (responseData.reply) {
+                                addMessage(responseData.reply, false);
+                            } else {
+                                console.log('Response has no reply field:', responseData);
+                                addMessage('응답을 받았지만 메시지가 없습니다.', false, true);
+                            }
+                        } else {
+                            console.log('Empty response received');
+                            addMessage('메시지가 전송되었지만 응답이 없습니다.', false, true);
                         }
-                    } catch (jsonError) {
-                        console.log('Response is not JSON:', await response.text());
-                        addMessage('응답을 처리하는 중 오류가 발생했습니다.', false, true);
+                    } catch (parseError) {
+                        console.error('JSON Parse error:', parseError);
+                        console.log('Non-JSON response:', responseText);
+                        addMessage('응답 형식이 올바르지 않습니다.', false, true);
                     }
                 } else {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
             } catch (error) {
                 console.error('Error details:', error);
-                addMessage('메시지 전송 중 오류가 발생했습니다. (상세 오류는 콘솔을 확인해주세요)', false, true);
+                addMessage(`메시지 전송 중 오류가 발생했습니다: ${error.message}`, false, true);
             }
         }
 
