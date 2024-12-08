@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instagram Style Chat - Dark Mode</title>
     <style>
+        /* 이전 스타일 유지 */
         * {
             margin: 0;
             padding: 0;
@@ -58,19 +59,6 @@
             overflow-y: auto;
             padding: 16px;
             background: #262626;
-        }
-
-        .chat-messages::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .chat-messages::-webkit-scrollbar-track {
-            background: #262626;
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #363636;
-            border-radius: 4px;
         }
 
         .message {
@@ -147,6 +135,13 @@
             color: #8e8e8e;
             cursor: default;
         }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 4px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -171,19 +166,29 @@
     </div>
 
     <script>
-        const webhook = "cfdafgtp4angm4s0bx2gmo06frlbk3zn@hook.eu2.make.com";
+        const webhookUrl = "https://hook.eu2.make.com/cfdafgtp4angm4s0bx2gmo06frlbk3zn";
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const chatMessages = document.getElementById('chatMessages');
 
-        function addMessage(content, isSent) {
+        function addMessage(content, isSent, isError = false) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    ${content}
-                </div>
-            `;
+            
+            if (isError) {
+                messageDiv.innerHTML = `
+                    <div class="message-content" style="background: #442222;">
+                        ${content}
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        ${content}
+                    </div>
+                `;
+            }
+            
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -197,25 +202,34 @@
             messageInput.value = '';
 
             try {
-                // Webhook으로 메시지 전송
-                const response = await fetch(`https://${webhook}`, {
+                console.log('Sending message to webhook:', webhookUrl);
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                     },
                     body: JSON.stringify({ message: content })
                 });
 
-                // 응답 처리
+                console.log('Response status:', response.status);
+                
                 if (response.ok) {
-                    const data = await response.json();
-                    if (data.reply) {
-                        addMessage(data.reply, false);
+                    try {
+                        const data = await response.json();
+                        if (data.reply) {
+                            addMessage(data.reply, false);
+                        }
+                    } catch (jsonError) {
+                        console.log('Response is not JSON:', await response.text());
+                        addMessage('응답을 처리하는 중 오류가 발생했습니다.', false, true);
                     }
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
             } catch (error) {
-                console.error('Error:', error);
-                addMessage('죄송합니다. 메시지 전송 중 오류가 발생했습니다.', false);
+                console.error('Error details:', error);
+                addMessage('메시지 전송 중 오류가 발생했습니다. (상세 오류는 콘솔을 확인해주세요)', false, true);
             }
         }
 
