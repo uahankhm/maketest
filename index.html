@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webhook Integrated Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 350px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 10px 20px;
+            background-color: #efefef;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .chat-body {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .message {
+            display: flex;
+            margin: 5px 0;
+            max-width: 80%;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message .text {
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.user .text {
+            background-color: #dcf8c6;
+            color: #000;
+        }
+
+        .message.bot .text {
+            background-color: #efefef;
+            color: #000;
+        }
+
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+            border-radius: 0 0 20px 20px;
+            background-color: #f9f9f9;
+        }
+
+        .chat-footer input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+
+        .chat-footer button {
+            background-color: #3897f0;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            margin-left: 10px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h3>ChatBot</h3>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="user-input" placeholder="Type a message..." />
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+    <script>
+        const WEBHOOK_URL = "https://hook.eu2.make.com/cfdafgtp4angm4s0bx2gmo06frlbk3zn";
+
+        document.getElementById("send-btn").addEventListener("click", async function() {
+            const inputField = document.getElementById("user-input");
+            const userInput = inputField.value.trim();
+
+            if (userInput) {
+                addMessage(userInput, "user");
+                inputField.value = "";
+
+                // Send input to webhook and get response
+                const botReply = await sendToWebhook(userInput);
+                addMessage(botReply, "bot");
+            }
+        });
+
+        function addMessage(text, sender) {
+            const chatBody = document.getElementById("chat-body");
+            const message = document.createElement("div");
+            message.classList.add("message", sender);
+            message.innerHTML = `<div class="text">${text}</div>`;
+            chatBody.appendChild(message);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        async function sendToWebhook(userInput) {
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message: userInput })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Webhook request failed");
+                }
+
+                const data = await response.json();
+                return data.reply || "No reply from the webhook.";
+            } catch (error) {
+                console.error("Error sending to webhook:", error);
+                return "Sorry, something went wrong. Please try again.";
+            }
+        }
+    </script>
+</body>
+</html>
