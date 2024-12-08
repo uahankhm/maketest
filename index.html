@@ -1,163 +1,234 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webhook Integrated Chatbot</title>
+    <title>Instagram Style Chat - Dark Mode</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f3f3f3;
+            background-color: #000000;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
         }
 
         .chat-container {
-            width: 350px;
-            background-color: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 375px;
+            height: 667px;
+            background: #262626;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
         }
 
         .chat-header {
-            padding: 10px 20px;
-            background-color: #efefef;
-            border-radius: 20px 20px 0 0;
-            text-align: center;
-            font-weight: bold;
-            color: #444;
+            padding: 16px;
+            border-bottom: 1px solid #363636;
+            display: flex;
+            align-items: center;
+            background: #262626;
+            border-radius: 10px 10px 0 0;
         }
 
-        .chat-body {
-            flex-grow: 1;
-            padding: 15px;
+        .profile-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #363636;
+            margin-right: 12px;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #ffffff;
+        }
+
+        .chat-messages {
+            flex: 1;
             overflow-y: auto;
-            border-top: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
+            padding: 16px;
+            background: #262626;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #262626;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #363636;
+            border-radius: 4px;
         }
 
         .message {
+            margin-bottom: 16px;
+            max-width: 70%;
             display: flex;
-            margin: 5px 0;
-            max-width: 80%;
+            flex-direction: column;
         }
 
-        .message.user {
-            justify-content: flex-end;
+        .message.received {
+            align-items: flex-start;
         }
 
-        .message.bot {
-            justify-content: flex-start;
+        .message.sent {
+            align-items: flex-end;
+            margin-left: auto;
         }
 
-        .message .text {
-            padding: 10px 15px;
-            border-radius: 20px;
+        .message-content {
+            padding: 12px;
+            border-radius: 22px;
             font-size: 14px;
             line-height: 1.4;
         }
 
-        .message.user .text {
-            background-color: #dcf8c6;
-            color: #000;
+        .received .message-content {
+            background: #363636;
+            color: #ffffff;
         }
 
-        .message.bot .text {
-            background-color: #efefef;
-            color: #000;
-        }
-
-        .chat-footer {
-            display: flex;
-            padding: 10px;
-            border-radius: 0 0 20px 20px;
-            background-color: #f9f9f9;
-        }
-
-        .chat-footer input {
-            flex-grow: 1;
-            padding: 10px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-            outline: none;
-        }
-
-        .chat-footer button {
-            background-color: #3897f0;
-            border: none;
+        .sent .message-content {
+            background: #0095f6;
             color: white;
-            padding: 10px 15px;
-            margin-left: 10px;
-            border-radius: 20px;
+        }
+
+        .chat-input {
+            padding: 16px;
+            border-top: 1px solid #363636;
+            display: flex;
+            align-items: center;
+            background: #262626;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .input-field {
+            flex: 1;
+            border: 1px solid #363636;
+            border-radius: 22px;
+            padding: 8px 16px;
+            margin-right: 8px;
+            font-size: 14px;
+            outline: none;
+            background: #363636;
+            color: #ffffff;
+        }
+
+        .input-field::placeholder {
+            color: #8e8e8e;
+        }
+
+        .send-button {
+            background: #0095f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 22px;
+            font-size: 14px;
             cursor: pointer;
+            font-weight: 600;
+        }
+
+        .send-button:disabled {
+            background: #1a4971;
+            color: #8e8e8e;
+            cursor: default;
         }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <h3>ChatBot</h3>
+            <div class="profile-img"></div>
+            <div class="chat-name">챗봇 도우미</div>
         </div>
-        <div class="chat-body" id="chat-body">
-            <!-- Messages will appear here -->
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message received">
+                <div class="message-content">
+                    안녕하세요! 무엇을 도와드릴까요? 😊
+                </div>
+            </div>
         </div>
-        <div class="chat-footer">
-            <input type="text" id="user-input" placeholder="Type a message..." />
-            <button id="send-btn">Send</button>
+
+        <div class="chat-input">
+            <input type="text" class="input-field" placeholder="메시지를 입력하세요..." id="messageInput">
+            <button class="send-button" id="sendButton">보내기</button>
         </div>
     </div>
+
     <script>
-        const WEBHOOK_URL = "https://hook.eu2.make.com/cfdafgtp4angm4s0bx2gmo06frlbk3zn";
+        const webhook = "cfdafgtp4angm4s0bx2gmo06frlbk3zn@hook.eu2.make.com";
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const chatMessages = document.getElementById('chatMessages');
 
-        document.getElementById("send-btn").addEventListener("click", async function() {
-            const inputField = document.getElementById("user-input");
-            const userInput = inputField.value.trim();
+        function addMessage(content, isSent) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${content}
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
-            if (userInput) {
-                addMessage(userInput, "user");
-                inputField.value = "";
+        async function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content) return;
 
-                // Send input to webhook and get response
-                const botReply = await sendToWebhook(userInput);
-                addMessage(botReply, "bot");
+            // 사용자 메시지 표시
+            addMessage(content, true);
+            messageInput.value = '';
+
+            try {
+                // Webhook으로 메시지 전송
+                const response = await fetch(`https://${webhook}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: content })
+                });
+
+                // 응답 처리
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.reply) {
+                        addMessage(data.reply, false);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('죄송합니다. 메시지 전송 중 오류가 발생했습니다.', false);
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
             }
         });
 
-        function addMessage(text, sender) {
-            const chatBody = document.getElementById("chat-body");
-            const message = document.createElement("div");
-            message.classList.add("message", sender);
-            message.innerHTML = `<div class="text">${text}</div>`;
-            chatBody.appendChild(message);
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-
-        async function sendToWebhook(userInput) {
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ message: userInput })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Webhook request failed with status ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data.reply || "No reply from the webhook.";
-            } catch (error) {
-                console.error("Error sending to webhook:", error);
-                return "Sorry, something went wrong. Please try again.";
-            }
-        }
+        messageInput.addEventListener('input', () => {
+            sendButton.disabled = !messageInput.value.trim();
+        });
     </script>
 </body>
 </html>
