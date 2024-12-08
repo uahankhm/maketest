@@ -148,7 +148,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error("Webhook request failed");
+                    throw new Error(`Webhook request failed with status ${response.status}`);
                 }
 
                 const data = await response.json();
